@@ -1,0 +1,93 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Interaction Ratings</title>
+    <!-- include jsPsych -->
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych7.0.0.js"></script>
+    <link href="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+    <!-- include jsPsych plugins -->
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/plugin-instructions.js"></script>
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/EG-html-slider-track-responses.js"></script>
+
+    <style>
+      html, body {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+      }
+      #video-wrapper {
+          margin-top: 50px; /* Adjust this value as needed */
+          text-align: center;
+      }
+    </style>
+</head>
+<body>
+
+  <div id="video-container">
+    <div id="video-wrapper"></div>
+</div>
+
+<script>
+    // initialize jsPsych
+    const jsPsych = initJsPsych({
+        override_safe_mode: true
+    });
+
+    var instructions = {
+        type: jsPsychInstructions,
+        pages: ['<p style="font-size:30px;">In this experiment, you are going to see short videos of people in social settings.</p><br>',
+        '<p style="font-size:30px;">Below each video, you will see a sliding scale as shown in the example below:</p><br>' +
+        '<br>' +
+        '<img src="https://egaillar.github.io/social-interaction-rating/img/instruct1.png"></img>',
+        '<p style="font-size:30px;">While the video plays, please drag the slider continuously to indicate how you feel about the social setting shown in the video</p><br>' +
+        '<br>' +
+        '<img src="https://egaillar.github.io/social-interaction-rating/img/instruct2.png"></img>',
+        '<p style="font-size:30px;">Continue to move the slider as the video plays so that the position of the slider accurately reflects your impression of the social setting, which may change.</p><br>',
+        '<p style="font-size:30px;">Please pay attention and try your best!</p><br><br><p style="font-size:25px;">Click "Next" to begin the experiment.</p>'
+        ],
+        key_forward: 'ArrowRight',
+        key_backward: 'ArrowLeft',
+        show_clickable_nav: true,
+    }
+
+    var video_rating_procedure = {
+        timeline: [
+            {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '<p style="font-size:80px;">+</p>',
+                choices: jsPsych.NO_KEYS,
+                trial_duration: 3000,
+                response_ends_trial: false
+            },
+            {
+                type: jsPsychVideoSliderResponse,
+                stimulus: jsPsych.timelineVariable('vid'),
+                prompt: '<p style="font-size:23px;">Please move the slider as you watch the video.</p>',
+                width: 900,
+                height: 700,
+                stop: 30,
+                labels: ['<p style="font-size:23px;">Negative</p>', '<p style="font-size:23px;">Positive</p>'],
+                response_ends_trial: false,
+                trial_ends_after_video: true,
+                track_slider_history: true,
+                on_finish: function(data) {
+		            console.log(data);
+	            }
+            }
+        ],
+        timeline_variables: [
+            {vid: ['https://egaillar.github.io/social-interaction-rating/vid/VIRAT_1.mp4']},
+            {vid: ['https://egaillar.github.io/social-interaction-rating/vid/VIRAT_2.mp4']},
+            {vid: ['https://egaillar.github.io/social-interaction-rating/vid/VIRAT_3.mp4']},
+            {vid: ['https://egaillar.github.io/social-interaction-rating/vid/VIRAT_4.mp4']},
+        ],
+        randomize_order: true
+    }
+
+    var timeline = [instructions, video_rating_procedure]
+    jsPsych.run(timeline)
+</script>
+</body>
+</html>
