@@ -1,0 +1,172 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Interaction Ratings</title>
+    <!-- include jsPsych -->
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych6.js"></script>
+    <link href="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych6.css" rel="stylesheet" type="text/css" />
+    <!-- include jsPsych plugins -->
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych-instructions6.js"></script>
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych-image-slider-response6.js"></script>
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/jspsych-html-keyboard-response6.js"></script>
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/EG-video-slider-response-history.js"></script>
+    <script src="https://egaillar.github.io/social-interaction-rating/jspsych/filenames_final.js"></script>
+
+
+    <style>
+      html, body {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+      }
+      #video-wrapper {
+          margin-top: 50px;
+          text-align: center;
+      }
+    </style>
+</head>
+<body>
+
+  <div id="video-container">
+    <div id="video-wrapper"></div>
+</div>
+
+<script>
+
+/** ------------------ IN THIS SECTION we want to pull 10 videos randomly from a total of 295 videos -------------------*/
+
+// first, create a function to shuffle an array of videos randomly
+function shuffleArray(array) { // takes array of filenames
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+// second, create a function to sample X videos from the shuffled array
+function sampleArray(array, num) { // takes array of filenames and desired number of sampled videos
+    var copy = array.slice(0); 
+    shuffleArray(copy);
+    var result = copy.slice(0, num);
+    return result;
+}
+
+// third, create a function to append the source to the filename
+function appendSrcToFilename(filenames_main, img_src) { // takes array of filenames and image source 
+    var filenames_with_src = [];
+    for (var i = 0; i < filenames_main.length; i++) {
+        filenames_with_src.push(img_src + filenames_main[i]);
+    }
+    return filenames_with_src;
+}
+
+// finally, use these functions to create array of 10 video URLS ('filenames_src')
+    const img_src = 'https://social-interaction-rating-jspsych.s3.amazonaws.com/'; // videos are hosted on AWS
+    // shuffle and sample array 
+    var filenames_main = sampleArray(filenames, 10); // filenames variable created in 'filenames.js', sample 10 videos
+    // append sources 
+    var filenames_src = appendSrcToFilename(filenames_main, img_src);
+
+
+
+/** ------------------ IN THIS SECTION we want to set up our data collection -------------------*/
+    
+// initialize empty string
+    result_string = []
+// create function to add trial data to string
+function onFinishSlider (data) {
+    result_string += data.stimulus + ' ' + data.slider_start + ' ' + 
+    data.slider_history + ' ' + data.rt + ' ' + Math.round(data.rt).toString() + ';';
+    }
+
+
+/** ----------------------------- DEFINE PROCEDURE ------------------------------------*/
+
+// instructions
+    var instructions = {
+        timeline: [
+            {
+                type: 'instructions',
+                pages: [
+                    '<p style="font-size:35px; line-height: 1.5;">Welcome! Today, you are going to see short videos of people in social settings.</p><br>',
+                    '<p style="font-size:35px;line-height: 1.5;">Below each video, you will see a sliding scale ranging from "Negative" to "Positive" as shown in the example below:</p><br>' +
+                    '<br>' +
+                    '<img src="https://egaillar.github.io/social-interaction-rating/img/instruct1.png"></img>',
+                    '<p style="font-size:35px;line-height: 1.5;">For this experiment, we ask that you move the slider to reflect how you feel about the social setting shown in the video.</p><br>'
+                ],
+                key_forward: 'ArrowRight',
+                key_backward: 'ArrowLeft',
+                show_clickable_nav: true
+            },
+            {
+                type: 'image-slider-response',
+                stimulus: "https://egaillar.github.io/social-interaction-rating/img/instruct3.png",
+                stimulus_width: 650,
+                slider_width: 650,
+                labels: ['<p style="font-size:23px;">Negative</p>', '<p style="font-size:23px;">Positive</p>'],
+                button_label: 'Next',
+                require_movement: true,
+                prompt: '<p style="font-size:30px;line-height: 1.5;">Now, practice dragging the slider. Press "Next" when you are ready to continue.</p>',
+                response_ends_trial: true,
+                trial_duration: 60000 // allow participants max of 1min to practice with slider
+            },
+            {
+                type: 'instructions',
+                pages: [
+                    '<p style="font-size:35px; line-height: 1.5;">Please <span style="color: red; font-weight: bold;">continue to move the slider as the video plays</span> so that the position of the slider accurately reflects your impression of the social setting, which may change.</p><br>',
+                    '<p style="font-size:35px; line-height: 1.5;">Some videos will appear blurry. Please pay attention and try your best!</p><br><br><br><p style="font-size:30px;">Click "Next" to begin the experiment.</p>'
+                ],
+                key_forward: 'ArrowRight',
+                key_backward: 'ArrowLeft',
+                show_clickable_nav: true // participants can advance with arrow keys or mouse
+            }
+        ]
+    };
+
+// rating task
+    var video_rating_procedure = {
+        timeline: [
+            {
+                type: 'html-keyboard-response',
+                stimulus: '<p style="font-size:80px;">+</p>',
+                choices: [], // no keys allowed
+                trial_duration: 3000,
+                response_ends_trial: false
+            },
+            {
+                type: 'video-slider-response',
+                stimulus: jsPsych.timelineVariable('vids'),
+                prompt: '<p style="font-size:23px;">Please move the slider as you watch the video.</p>',
+                width: 850,
+                height: 650,
+                labels: ['<p style="font-size:23px;">Negative</p>', '<p style="font-size:23px;">Positive</p>'],
+                response_ends_trial: false,
+                trial_ends_after_video: true,
+                track_slider_history: true,
+                on_finish: onFinishSlider, // ensure that data is added to result_string at the end of each trial
+            }
+        ],
+        timeline_variables: filenames_src.map(vid => ({ vids: [vid] })),
+        randomize_order: true
+    };
+
+    /** ------------------------------------ RUN EXPERIMENT --------------------------------------*/
+
+    jsPsych.init({
+        timeline: [instructions, video_rating_procedure],
+        override_safe_mode: true,
+        type: 'fullscreen',
+        fullscreen_mode: true,
+        on_finish: function() {
+            // log the data and display it
+            var data = jsPsych.data.get().json();
+            console.log(data);
+        }
+    });
+</script>
+</script>
+</body>
+</html>
